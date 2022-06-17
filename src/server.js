@@ -17,11 +17,20 @@ const wss = new WebSocket.Server({server});
 const sockets = [];
 wss.on("connection", (socket) => {
     sockets.push(socket);
+    socket["nickname"] = "Anon";
     console.log("connected to browser")
     socket.on("close", () => {
         console.log("disconnected from the browser")
     });
-    socket.on("message", message => sockets.forEach((aSocket) => aSocket.send(message)))
+    socket.on("message", msg => {
+        const message = JSON.parse(msg);
+        switch (message.type) {
+            case "new_message" :
+                sockets.forEach((aSocket) => aSocket.send(`${socket.nickname}: ${message.payload}`));
+            case "nickname" :
+                socket["nickname"] = message.payload;
+        }
+    })
 })
 //connection이 생기면 socket을 받는다.
 //socket의 메소드
